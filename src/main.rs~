@@ -436,6 +436,7 @@ pub const myCipher: [u8; 16]            =                                       
 fn main()
 {
   
+  println!("cipher: ");
   for k in myCipher.iter()
   {
     print!("{:01$x}", k, 2);
