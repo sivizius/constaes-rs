@@ -14,6 +14,7 @@ const fn bytes2u32
   c as u32 * 0x00010000 +
   d as u32 * 0x01000000
 }
+
 const fn u322bytes
 (
   val:                                  u32,
@@ -206,6 +207,7 @@ const aesTE4: [u8; 8 * 32 ]
     0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68,
     0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16,
   ];
+
 const aesrcon: [u32; 10]
 = [
     0x00000001,
@@ -230,6 +232,7 @@ const fn aeskey128round
   let b: u32 = aesTE4 [ (( key[3 + 4 * round] >>  8 ) & 0xff ) as usize ] as u32 * 0x00000001;
   let c: u32 = aesTE4 [ (( key[3 + 4 * round] >> 16 ) & 0xff ) as usize ] as u32 * 0x00000100;
   let d: u32 = aesTE4 [ (( key[3 + 4 * round] >> 24 ) & 0xff ) as usize ] as u32 * 0x00010000;
+
   key[4 + 4 * round]                    =                                       a ^ b ^ c ^ d ^ aesrcon[round] ^ key[0 + 4 * round];
   key[5 + 4 * round]                    =                                       key[4 + 4 * round] ^ key[1 + 4 * round];
   key[6 + 4 * round]                    =                                       key[5 + 4 * round] ^ key[2 + 4 * round];
@@ -254,6 +257,7 @@ const fn aeskey128
       0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0,
     ];
+
   out                                   =                                       aeskey128round(out, 0);
   out                                   =                                       aeskey128round(out, 1);
   out                                   =                                       aeskey128round(out, 2);
@@ -263,8 +267,7 @@ const fn aeskey128
   out                                   =                                       aeskey128round(out, 6);
   out                                   =                                       aeskey128round(out, 7);
   out                                   =                                       aeskey128round(out, 8);
-  out                                   =                                       aeskey128round(out, 9);
-  out
+  aeskey128round                                                                              (out, 9)
 }
 
 const fn aesenc128round
@@ -281,10 +284,12 @@ const fn aesenc128round
   let mut t1: u32;
   let mut t2: u32;
   let mut t3: u32;
+
   s0                                    =                                       key[ 8 * round + 0 ] ^ s0;
   s1                                    =                                       key[ 8 * round + 1 ] ^ s1;
   s2                                    =                                       key[ 8 * round + 2 ] ^ s2;
   s3                                    =                                       key[ 8 * round + 3 ] ^ s3;
+
   t0                                    = aesTE0[ (( s0 >>  0 ) & 0xff ) as usize ]
                                         ^ aesTE1[ (( s1 >>  8 ) & 0xff ) as usize ]
                                         ^ aesTE2[ (( s2 >> 16 ) & 0xff ) as usize ]
@@ -301,10 +306,12 @@ const fn aesenc128round
                                         ^ aesTE1[ (( s0 >>  8 ) & 0xff ) as usize ]
                                         ^ aesTE2[ (( s1 >> 16 ) & 0xff ) as usize ]
                                         ^ aesTE3[ (( s2 >> 24 ) & 0xff ) as usize ];
+
   t0                                    =                                       key[ 8 * round + 4 ] ^ t0;
   t1                                    =                                       key[ 8 * round + 5 ] ^ t1;
   t2                                    =                                       key[ 8 * round + 6 ] ^ t2;
   t3                                    =                                       key[ 8 * round + 7 ] ^ t3;
+
   s0                                    = aesTE0[ (( t0 >>  0 ) & 0xff ) as usize ]
                                         ^ aesTE1[ (( t1 >>  8 ) & 0xff ) as usize ]
                                         ^ aesTE2[ (( t2 >> 16 ) & 0xff ) as usize ]
@@ -338,10 +345,12 @@ const fn aesenc128last
   let mut t1: u32;
   let mut t2: u32;
   let mut t3: u32;
+
   s0                                    =                                       key[ 8 * round + 0 ] ^ s0;
   s1                                    =                                       key[ 8 * round + 1 ] ^ s1;
   s2                                    =                                       key[ 8 * round + 2 ] ^ s2;
   s3                                    =                                       key[ 8 * round + 3 ] ^ s3;
+
   t0                                    = aesTE0[ (( s0 >>  0 ) & 0xff ) as usize ]
                                         ^ aesTE1[ (( s1 >>  8 ) & 0xff ) as usize ]
                                         ^ aesTE2[ (( s2 >> 16 ) & 0xff ) as usize ]
@@ -358,10 +367,12 @@ const fn aesenc128last
                                         ^ aesTE1[ (( s0 >>  8 ) & 0xff ) as usize ]
                                         ^ aesTE2[ (( s1 >> 16 ) & 0xff ) as usize ]
                                         ^ aesTE3[ (( s2 >> 24 ) & 0xff ) as usize ];
+
   t0                                    =                                       key[ 8 * round + 4 ] ^ t0;
   t1                                    =                                       key[ 8 * round + 5 ] ^ t1;
   t2                                    =                                       key[ 8 * round + 6 ] ^ t2;
   t3                                    =                                       key[ 8 * round + 7 ] ^ t3;
+
   s0                                    = aesTE4[ (( t0 >>  0 ) & 0xff ) as usize ] as u32 * 0x00000001
                                         ^ aesTE4[ (( t1 >>  8 ) & 0xff ) as usize ] as u32 * 0x00000100
                                         ^ aesTE4[ (( t2 >> 16 ) & 0xff ) as usize ] as u32 * 0x00010000
@@ -378,11 +389,28 @@ const fn aesenc128last
                                         ^ aesTE4[ (( t0 >>  8 ) & 0xff ) as usize ] as u32 * 0x00000100
                                         ^ aesTE4[ (( t1 >> 16 ) & 0xff ) as usize ] as u32 * 0x00010000
                                         ^ aesTE4[ (( t2 >> 24 ) & 0xff ) as usize ] as u32 * 0x01000000;
+
   t0                                    =                                       key[ 8 * round +  8 ] ^ s0;
   t1                                    =                                       key[ 8 * round +  9 ] ^ s1;
   t2                                    =                                       key[ 8 * round + 10 ] ^ s2;
   t3                                    =                                       key[ 8 * round + 11 ] ^ s3;
   ( t0, t1, t2, t3 )
+}
+
+const fn aesenc128fast
+(
+  key:                                  [u32; 44],
+  s0:                                   u32,
+  s1:                                   u32,
+  s2:                                   u32,
+  s3:                                   u32,
+) -> ( u32, u32, u32, u32 )
+{
+  let ( s0, s1, s2, s3 )                =                                       aesenc128round  ( key,  s0,       s1,       s2,       s3,       0 );
+  let ( s0, s1, s2, s3 )                =                                       aesenc128round  ( key,  s0,       s1,       s2,       s3,       1 );
+  let ( s0, s1, s2, s3 )                =                                       aesenc128round  ( key,  s0,       s1,       s2,       s3,       2 );
+  let ( s0, s1, s2, s3 )                =                                       aesenc128round  ( key,  s0,       s1,       s2,       s3,       3 );
+  aesenc128last                                                                                 ( key,  s0,       s1,       s2,       s3,       4 )
 }
 
 const fn aesenc128
@@ -391,27 +419,17 @@ const fn aesenc128
   data:                                 [u8; 16],
 ) -> [u8; 16]
 {
-  let key: [ u32; 44 ]                  =                                       aeskey128(key);
-  let data: [ u32; 4 ]
-  = [
-      bytes2u32(data[0x00], data[0x01], data[0x02], data[0x03]),
-      bytes2u32(data[0x04], data[0x05], data[0x06], data[0x07]),
-      bytes2u32(data[0x08], data[0x09], data[0x0a], data[0x0b]),
-      bytes2u32(data[0x0c], data[0x0d], data[0x0e], data[0x0f]),
-    ];
-  let ( s0, s1, s2, s3 )                =                                       aesenc128round  ( key,  data[0],  data[1],  data[2],  data[3],  0 );
-  let ( s0, s1, s2, s3 )                =                                       aesenc128round  ( key,  s0,       s1,       s2,       s3,       1 );
-  let ( s0, s1, s2, s3 )                =                                       aesenc128round  ( key,  s0,       s1,       s2,       s3,       2 );
-  let ( s0, s1, s2, s3 )                =                                       aesenc128round  ( key,  s0,       s1,       s2,       s3,       3 );
-  let ( s0, s1, s2, s3 )                =                                       aesenc128last   ( key,  s0,       s1,       s2,       s3,       4 );
-  let data: [ u32; 4 ]
-  = [
-      s0, s1, s2, s3,
-    ];
-  let (a0, b0, c0, d0)                  = u322bytes( data[0] );
-  let (a1, b1, c1, d1)                  = u322bytes( data[1] );
-  let (a2, b2, c2, d2)                  = u322bytes( data[2] );
-  let (a3, b3, c3, d3)                  = u322bytes( data[3] );
+  let s0: u32                           =                                       bytes2u32(data[0x00], data[0x01], data[0x02], data[0x03]);
+  let s1: u32                           =                                       bytes2u32(data[0x04], data[0x05], data[0x06], data[0x07]);
+  let s2: u32                           =                                       bytes2u32(data[0x08], data[0x09], data[0x0a], data[0x0b]);
+  let s3: u32                           =                                       bytes2u32(data[0x0c], data[0x0d], data[0x0e], data[0x0f]);
+
+  let (s0, s1, s2, s3)                  =                                       aesenc128fast(aeskey128(key), s0, s1, s2, s3);
+
+  let (a0, b0, c0, d0)                  = u322bytes( s0 );
+  let (a1, b1, c1, d1)                  = u322bytes( s1 );
+  let (a2, b2, c2, d2)                  = u322bytes( s2 );
+  let (a3, b3, c3, d3)                  = u322bytes( s3 );
   [
     a0, b0, c0, d0,
     a1, b1, c1, d1,
@@ -430,12 +448,11 @@ const myPlain: [u8; 16]
     0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34,
   ];
 
-pub const myCipher: [u8; 16]            =                                       aesenc128( myKey, myPlain );
-
+pub const myCipher:            [u8; 16] =                                       aesenc128( myKey, myPlain );
+pub const myEncrypted:         [u8; 16] =                                       aesenc128( *b"0123456789abcdef", *b"Hello my World!!" );
 
 fn main()
 {
-  
   for k in myCipher.iter()
   {
     print!("{:01$x}", k, 2);
